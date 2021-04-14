@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cao.activti.mapper.QingjiaMapper">
+
+    <insert id="insertQingjia" parameterType="com.cao.activti.entity.Qingjia">
+        insert into t_qingjia(uuid,name,cause,day,phone,times) values (#{uuid},#{name},#{cause},#{day},#{phone},#{times})
+    </insert>
+
+    <select id="listQingjiaYiban" resultType="com.cao.activti.vo.QingjiaVo">
+        SELECT
+        t3.*,
+        t1.ID_ AS taskId,
+        t1.NAME_ AS taskName
+        FROM
+        act_hi_taskinst t1
+        INNER JOIN act_hi_procinst t2 ON t1.proc_inst_id_ = t2.id_
+        INNER JOIN t_qingjia t3 ON t2.business_key_ = t3.uuid
+        LEFT JOIN t_user t99 ON t99.uuid = t1.assignee_
+        LEFT JOIN act_re_procdef t4 ON t4.id_ = t1.proc_def_id_
+        WHERE
+        t4.key_ = 'qingjia'
+        AND t1.end_time_ IS NOT NULL
+        <if test="userId != null and userId != '' and userId=='oighhqnqn8298929r'">
+            AND t1.assignee_ = #{userId} and  t1.NAME_ != '请假申请'
+        </if>
+        <if test="userId != null and userId != '' ">
+            AND t1.assignee_ = #{userId}
+        </if>
+        ORDER BY
+        t1.end_time_ DESC
+    </select>
+
+    <select id="listQingjiaDaiban" resultType="com.cao.activti.vo.QingjiaVo">
+        select * from (SELECT distinct
+        t3.*,
+		t1.ID_ as taskId,
+		t1.NAME_ as taskName
+        FROM
+        act_ru_task t1
+        INNER JOIN act_ru_execution t2 ON t1.proc_inst_id_ = t2.proc_inst_id_
+        INNER JOIN t_qingjia t3 ON t2.business_key_ = t3.uuid
+        left Join t_user t100 on t100.uuid=t1.assignee_
+        INNER JOIN act_re_procdef t18 ON t18.id_ = t1.proc_def_id_
+        LEFT JOIN act_ru_identitylink t99 on t99.proc_inst_id_=t1.proc_inst_id_
+        WHERE
+        t18.key_ = 'qingjia'
+        AND t1.suspension_state_ = '1'
+        and t1.ASSIGNEE_=#{userId}
+        ) b
+    </select>
+
+    <select id="detailByUuid" resultType="com.cao.activti.vo.QingjiaVo">
+        select * from t_qingjia where uuid=#{uuid}
+    </select>
+
+</mapper>
